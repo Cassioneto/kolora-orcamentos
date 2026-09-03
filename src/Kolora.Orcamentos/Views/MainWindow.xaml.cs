@@ -11,6 +11,8 @@ namespace Kolora.Orcamentos.Views;
 public partial class MainWindow : Window
 {
     private readonly IServiceProvider _sp;
+    private static readonly SolidColorBrush NormalBrush = CreateFrozen("#16213E");
+    private static readonly SolidColorBrush AtivoBrush = CreateFrozen("#FF6B35");
     private Button? _botaoAtivo;
 
     public MainWindow(IServiceProvider sp, ISyncService sync)
@@ -18,18 +20,21 @@ public partial class MainWindow : Window
         InitializeComponent();
         _sp = sp;
         sync.StatusChanged += (_, s) => Dispatcher.Invoke(() => SyncText.Text = s);
-        sync.NovosPedidos += (_, _) => Dispatcher.Invoke(() => AtualizarBadge());
-        Loaded += (_, _) => Navigate<DashboardViewModel>(GetButton("BtnNav_Dashboard"));
+        sync.NovosPedidos += (_, _) => _ = AtualizarBadgeAsync();
+        Loaded += (_, _) =>
+        {
+            Navigate<DashboardViewModel>(GetButton("BtnNav_Dashboard"));
+            _ = AtualizarBadgeAsync();
+        };
     }
 
-    private void Navigate<T>(Button botao) where T : BaseViewModel
+    private void Navigate<T>(Button? botao) where T : BaseViewModel
     {
         try
         {
-            var vm = _sp.GetRequiredService<T>();
-            MainContent.Content = vm; // DataTemplate em App.xaml cria a View com DataContext certo
+            MainContent.Content = _sp.GetRequiredService<T>(); // DataTemplate em App.xaml cria a View com DataContext certo
             if (botao != null) MarcarAtivo(botao);
-            if (typeof(T) == typeof(PedidosRecebidosViewModel)) _ = Task.Run(AtualizarBadge);
+            if (typeof(T) == typeof(PedidosRecebidosViewModel)) _ = AtualizarBadgeAsync();
         }
         catch (Exception ex)
         {
@@ -38,29 +43,36 @@ public partial class MainWindow : Window
         }
     }
 
-    private Button GetButton(string name) => (Button)FindName(name);
+    private Button? GetButton(string name) => FindName(name) as Button;
 
     private void MarcarAtivo(Button botao)
     {
-        if (_botaoAtivo != null) _botaoAtivo.Background = new SolidColorBrush(Color.FromRgb(0x16, 0x21, 0x3E));
+        if (_botaoAtivo != null) _botaoAtivo.Background = NormalBrush;
         _botaoAtivo = botao;
-        botao.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0x6B, 0x35));
+        botao.Background = AtivoBrush;
     }
 
-    private async void AtualizarBadge()
+    private async Task AtualizarBadgeAsync()
     {
         try
         {
             var grafica = _sp.GetRequiredService<GraficaIdService>();
             using var db = new Data.KoloraDbContext(grafica.DbPath);
             var novos = await db.PedidosOrcamento.CountAsync(p => p.GraficaId == grafica.GraficaId && p.Status == Models.Enums.StatusPedido.Novo);
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 BadgePedidos.Text = $" {novos}";
                 BadgePedidos.Visibility = novos > 0 ? Visibility.Visible : Visibility.Collapsed;
             });
         }
         catch { /* badge nunca quebra a UI */ }
+    }
+
+    private static SolidColorBrush CreateFrozen(string hex)
+    {
+        var brush = (SolidColorBrush)new BrushConverter().ConvertFromString(hex)!;
+        brush.Freeze();
+        return brush;
     }
 
     private void Nav_Dashboard(object s, RoutedEventArgs e) => Navigate<DashboardViewModel>((Button)s);
