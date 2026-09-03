@@ -52,6 +52,8 @@ ROADMAP.md                      # Fases 2, 3, 4
 
 Se deixar vazio, o app funciona 100% offline (fila Outbox acumula até reconectar).
 
+> **Validado (2026-09-03):** app roda de ponta a ponta com Supabase vazio — startup, migrations automáticas, seed de 5 produtos, CRUD, Calculadora e PDF não dependem de rede. O sync só acorda quando `Supabase:Url` + `AnonKey` estiverem preenchidos **e** houver internet. Eventos offline ficam `Pendente` para sempre (nunca são descartados).
+
 ### 2. Build & Run
 
 ```powershell
@@ -71,11 +73,13 @@ Primeira execução cria:
 ### 3. Publish (.exe único via WhatsApp)
 
 ```powershell
+# 34 MB — requer .NET 8 Runtime no PC da gráfica
+dotnet publish src/Kolora.Orcamentos/Kolora.Orcamentos.csproj -c Release -r win-x64 --self-contained false /p:PublishSingleFile=true
+
+# 180 MB — funciona em qualquer Windows 10 64-bit sem instalar nada (recomendado para piloto)
 dotnet publish src/Kolora.Orcamentos/Kolora.Orcamentos.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 # Saída: src/Kolora.Orcamentos/bin/Release/net8.0-windows/win-x64/publish/KoloraGestor.exe
 ```
-
-> **Nota tamanho:** self-contained atual ≈ 227 MB. Alvo do spec é <80 MB. Para atingir: `framework-dependent` (`--self-contained false`, requer .NET 8 Runtime no PC, ~30 MB) ou `PublishTrimmed=true` + `InvariantGlobalization` (ver `ROADMAP.md`).
 
 Instalação Fase 1 (portable): coloque o `.exe` na Área de Trabalho e execute. Atualização: substitua o `.exe`, o `%AppData%/Kolora` é preservado.
 

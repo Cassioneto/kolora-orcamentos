@@ -8,20 +8,24 @@
         <Grid.ColumnDefinitions><ColumnDefinition Width="220"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Border Grid.RowSpan="2" Background="#1A1A2E">
             <StackPanel Margin="10">
-                <TextBlock Text="KOLORA" Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,10"/>
+                <!-- Logo KOLORA no canto superior esquerdo -->
+                <Image Source="..\Resources\kolora_logo.png"
+                       Width="64" Height="64" Margin="0,10,0,4" HorizontalAlignment="Left"
+                       RenderOptions.BitmapScalingMode="HighQuality" ToolTip="KOLORA Gestor"/>
+                <TextBlock Text="KOLORA" Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,0,0,0"/>
                 <TextBlock Text="Gestor Grafico" Foreground="#FF6B35" FontSize="11" Margin="0,0,0,20"/>
-                <Button Content="Dashboard" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Dashboard"/>
-                <Button Content="Produtos" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Produtos"/>
-                <Button Content="Materiais" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Materiais"/>
-                <Button Content="Calculadora" Margin="0,4" Padding="10,8" Background="#FF6B35" Foreground="White" BorderThickness="0" Click="Nav_Calculadora"/>
-                <Button Content="Stock" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Stock"/>
-                <Button Content="Orcamentos" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Orcamentos"/>
-                <Button Content="Clientes" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Clientes"/>
-                <Button Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Pedidos">
+                <Button Content="Dashboard" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Dashboard" Click="Nav_Dashboard"/>
+                <Button Content="Produtos" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Produtos" Click="Nav_Produtos"/>
+                <Button Content="Materiais" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Materiais" Click="Nav_Materiais"/>
+                <Button Content="Calculadora" Margin="0,4" Padding="10,8" Background="#FF6B35" Foreground="White" BorderThickness="0" x:Name="BtnNav_Calculadora" Click="Nav_Calculadora"/>
+                <Button Content="Stock" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Stock" Click="Nav_Stock"/>
+                <Button Content="Orcamentos" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Orcamentos" Click="Nav_Orcamentos"/>
+                <Button Content="Clientes" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Clientes" Click="Nav_Clientes"/>
+                <Button Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Pedidos" Click="Nav_Pedidos">
                     <StackPanel Orientation="Horizontal"><TextBlock Text="Pedidos"/><TextBlock x:Name="BadgePedidos" Text=" 0" Foreground="#FF6B35" FontWeight="Bold" Visibility="Collapsed"/></StackPanel>
                 </Button>
-                <Button Content="Configuracoes" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Config"/>
-                <Button Content="Sobre" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" Click="Nav_Sobre"/>
+                <Button Content="Configuracoes" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Config" Click="Nav_Config"/>
+                <Button Content="Sobre" Margin="0,4" Padding="10,8" Background="#16213E" Foreground="White" BorderThickness="0" x:Name="BtnNav_Sobre" Click="Nav_Sobre"/>
             </StackPanel>
         </Border>
         <ContentControl x:Name="MainContent" Grid.Column="1" Margin="10"/>

@@ -39,7 +39,7 @@ public class PdfService
                     if (logoBytes != null) row.ConstantItem(80).Image(logoBytes);
                     row.RelativeItem().Column(col =>
                     {
-                        col.Item().Text(model.Config.NomeExibicaoPdf ?? model.Grafica.Nome).FontSize(18).Bold().FontColor(Colors.Blue.Darken2);
+                        col.Item().Text(model.Config.NomeExibicaoPdf ?? model.Grafica.Nome).FontSize(18).Bold();
                         if (!string.IsNullOrWhiteSpace(model.Grafica.Telefone)) col.Item().Text("Tel: " + model.Grafica.Telefone).FontSize(9);
                         if (!string.IsNullOrWhiteSpace(model.Grafica.Localizacao)) col.Item().Text(model.Grafica.Localizacao).FontSize(9);
                     });
@@ -73,10 +73,37 @@ public class PdfService
                             table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(it.Nome).FontSize(9);
                             table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(it.Qtd.ToString("0.##")).FontSize(9);
                             table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(it.Largura > 0 ? it.Largura.ToString("0.##") + "x" + it.Altura.ToString("0.##") + "m" : "-").FontSize(9);
-                            table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).AlignRight().Text(it.Preco.ToString("C", new System.Globalization.CultureInfo("pt-AO"))).FontSize(9);
+                            table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).AlignRight().Text(Kolora.Orcamentos.Helpers.Kz.Format(it.Preco)).FontSize(9);
                         }
                     });
-                    col.Item().PaddingTop(10).AlignRight().Text("TOTAL: " + model.Total.ToString("C", new System.Globalization.CultureInfo("pt-AO"))).FontSize(14).Bold().FontColor(Colors.Blue.Darken2);
+                    col.Item().PaddingTop(10).AlignRight().Text("TOTAL: " + Kolora.Orcamentos.Helpers.Kz.Format(model.Total)).FontSize(14).Bold().FontColor(Colors.Blue.Darken2);
+
+                    // Formas de pagamento (IBAN / Multicaixa Express)
+                    var temIban = !string.IsNullOrWhiteSpace(model.Config.Iban);
+                    var temMcx = !string.IsNullOrWhiteSpace(model.Config.MulticaixaExpressNumero);
+                    if (temIban || temMcx)
+                    {
+                        col.Item().PaddingTop(14).Background(Colors.Grey.Lighten4).Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(8).Column(pag =>
+                        {
+                            pag.Item().Text("FORMAS DE PAGAMENTO").Bold().FontSize(9).FontColor(Colors.Blue.Darken2);
+                            if (temIban)
+                            {
+                                pag.Item().PaddingTop(4).Text(t =>
+                                {
+                                    t.Span("Transferência (IBAN): ").FontSize(9).Bold();
+                                    t.Span(model.Config.Iban).FontSize(10);
+                                });
+                            }
+                            if (temMcx)
+                            {
+                                pag.Item().PaddingTop(3).Text(t =>
+                                {
+                                    t.Span("Multicaixa Express: ").FontSize(9).Bold();
+                                    t.Span(model.Config.MulticaixaExpressNumero).FontSize(10);
+                                });
+                            }
+                        });
+                    }
                 });
                 page.Footer().Column(col =>
                 {

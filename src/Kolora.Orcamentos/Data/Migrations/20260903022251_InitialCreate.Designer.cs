@@ -3,6 +3,7 @@ using System;
 using Kolora.Orcamentos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kolora.Orcamentos.Data.Migrations
 {
     [DbContext(typeof(KoloraDbContext))]
-    partial class KoloraDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260903022251_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -58,9 +61,6 @@ namespace Kolora.Orcamentos.Data.Migrations
                     b.Property<Guid>("GraficaId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Iban")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("LogoPath")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -70,9 +70,6 @@ namespace Kolora.Orcamentos.Data.Migrations
 
                     b.Property<string>("MensagemRodapePdf")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MulticaixaExpressNumero")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NomeExibicaoPdf")

@@ -12,8 +12,8 @@ public class EfOrcamentoRepository : IOrcamentoRepository
 
     public async Task<List<Orcamento>> GetAllAsync() => await _context.Orcamentos.AsNoTracking().ToListAsync();
     public async Task<Orcamento?> GetByIdAsync(Guid id) => await _context.Orcamentos.FindAsync(id);
-    public async Task AddAsync(Orcamento orcamento) => await _context.Orcamentos.AddAsync(orcamento);
-    public async Task UpdateAsync(Orcamento orcamento) => _context.Orcamentos.Update(orcamento);
+    public Task AddAsync(Orcamento orcamento) { _context.Orcamentos.Add(orcamento); return Task.CompletedTask; }
+    public Task UpdateAsync(Orcamento orcamento) { _context.Orcamentos.Update(orcamento); return Task.CompletedTask; }
     public async Task DeleteAsync(Guid id)
     {
         var orcamento = await _context.Orcamentos.FindAsync(id);

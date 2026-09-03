@@ -31,7 +31,12 @@ public partial class DashboardViewModel : BaseViewModel
             TotalClientes = await db.Clientes.CountAsync(c => c.GraficaId == gid);
             TotalOrcamentos = await db.Orcamentos.CountAsync(o => o.GraficaId == gid);
             var inicioMes = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-            FaturacaoMes = await db.Orcamentos.Where(o => o.GraficaId == gid && o.Data >= inicioMes).SumAsync(o => (decimal?)o.Total) ?? 0;
+            // SQLite não suporta SUM(decimal) no servidor — agrega no cliente
+            FaturacaoMes = (await db.Orcamentos
+                .Where(o => o.GraficaId == gid && o.Data >= inicioMes)
+                .Select(o => o.Total)
+                .ToListAsync())
+                .Sum();
             StockCritico = await db.Materiais.CountAsync(m => m.GraficaId == gid && m.StockAtual <= m.StockMinimo);
             PendentesSync = await db.OutboxEvents.CountAsync(o => o.StatusSync == "Pendente");
             PedidosNovos = await db.PedidosOrcamento.CountAsync(p => p.GraficaId == gid && p.Status == Models.Enums.StatusPedido.Novo);

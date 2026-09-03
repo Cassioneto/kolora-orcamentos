@@ -11,5 +11,5 @@ public class EfSyncStateRepository : ISyncStateRepository
     public EfSyncStateRepository(KoloraDbContext context) => _context = context;
 
     public async Task<SyncState?> GetAsync() => await _context.SyncState.FirstOrDefaultAsync();
-    public async Task UpdateAsync(SyncState syncState) => _context.SyncState.Update(syncState);
+    public Task UpdateAsync(SyncState syncState) { _context.SyncState.Update(syncState); return Task.CompletedTask; }
 }

@@ -34,13 +34,23 @@
 - [x] Build 0 erros (6 warnings `CS1998` intencionais) + `MateriaisView.xaml:26` fix (removido `StockAlertConverter` inexistente)
 - [x] Publish validado: **227 MB self-contained** vs **35 MB framework-dependent** (`--self-contained false`, testado `2026-09-02`, requer .NET 8 Runtime) — alvo <80MB atingido no modo framework-dependent
 
+**Hardening offline-first (2026-09-03) — validado com smoke test:**
+- [x] **Migration real via dotnet-ef** (`Data/Migrations/20260903022251_InitialCreate.cs` + snapshot, via `DesignTimeFactory.cs`) — substituiu a migration manual que não registrava em `__EFMigrationsHistory` (causava `no such table` no 1º start)
+- [x] **Auto-recuperação da gráfica** `GraficaIdService.cs:31` — mesmo com `config.json` existente, recria `Graficas`/`ConfiguracoesGrafica`/Outbox INSERT se o DB for novo (log: `Grafica recriada no banco local`)
+- [x] **Sync nunca descarta offline** `SyncBackgroundService.cs:1` (reescrito) — eventos ficam `Pendente` para sempre sem rede/config; backoff por última tentativa (30s/2m/10m/1h); push/pull só roda se `IsSupabaseConfigured && IsOnline`; loops separados push 30s / pedidos 20s; evento `NovosPedidos` para badge
+- [x] **Gate `IsSupabaseConfigured`** (`IConfigurationService.cs:1`) — app 100% funcional com `appsettings.json` vazio; `NetworkMonitorService.cs:26` não faz ping sem URL
+- [x] **Payloads snake_case** `Helpers/OutboxJson.cs:1` (`SnakeCaseLower` + enums string) em todos os pontos de gravação Outbox — compatível com colunas Postgres
+- [x] **Fix `Sum(decimal)` SQLite** `DashboardViewModel.cs:34` — agregação client-side
+- [x] **0 warnings 0 erros** (repositórios `Ef*.cs` convertidos para `Task` síncrono)
+- [x] **Evidência smoke test offline:** app rodou 22s sem Supabase (PID ativo, zero `[ERR]`/`[FTL]` no log), 11 tabelas + `__EFMigrationsHistory` criadas, WAL ativo (`.db-wal` presente), seed 5 produtos, `Graficas=1`, `ConfiguracoesGrafica=1`, `OutboxEvents=1 (Grafica, INSERT, Pendente)`, `SyncState=1`
+- [x] Publish pós-fix: **34.2 MB framework-dependent** + **180 MB self-contained**
+
 **Débitos restantes Fase 1 (para fechar piloto):**
 - Validação de campos (nome obrigatório já, falta máscara telefone AO + margem 0-200% + custo >0)
 - `ProdutoMateriais` consumo por produto ainda sem UI (hoje abate é por `ProdutoMateriais` seed; falta tela vincular material→produto com `ConsumoPorUnidade`)
-- Pull catálogo last-write-wins ainda placeholder (`SyncBackgroundService.cs:74`) — completar com `SupabaseService.PullAsync<T>` + `atualizado_em` antes do piloto multi-PC
-- Migrations manuais (`Data/Migrations/InitialCreate.cs:1`) — migrar para `dotnet tool --local` na próxima máquina com .NET 8 no PATH global
+- Pull catálogo last-write-wins implementado (`SyncBackgroundService.PullCatalogoAsync`) — validar contra Supabase real com RLS ativa antes do piloto multi-PC
 - Testes xUnit pendentes (ver Fase C abaixo)
-
+- **Aba Margem** | uma calculadora de Margem com explicação detalhada
 ---
 
 ## Fase 2 — KOLORA Market (Marketplace) — 6 a 10 semanas — MAPEADA
@@ -58,6 +68,7 @@
 | 2.7 | **Storage logo sync** | Upload logo para Supabase Storage `assets/{grafica_id}/logo.png` + download no desktop se online | `ConfiguracoesViewModel.cs:25` → `Supabase.Storage` | Storage |
 | 2.8 | **Auto-updater** | Squirrel.Windows ou MSIX (substitui distribuição via WhatsApp) | `Kolora.Orcamentos.csproj:9` → `PublishSingleFile` + `Squirrel` | CI/CD |
 
+
 **Critérios de aceite Fase 2:**
 - Cliente cria pedido no site → gráfica vê badge "🔔 Novo" em <10s sem reiniciar
 - Worker AI acerta >80% dos parses (DTF/lona/vinil/cartão) em teste com 50 frases reais
@@ -70,7 +81,7 @@
 
 | # | Módulo | Detalhe | Esforço |
 |---|---|---|---|
-| 3.1 | **Multi-usuário por gráfica** | 2-3 PCs na mesma loja via LAN sync (SQLite + LiteFS ou Postgres local) ou Supabase com `updated_at` + fila de conflitos campo-a-campo | Alto |
+| 3.1 | **Multi-usuário por gráfica** | 2-3 PCs na mesma loja via LAN sync (SQLite + LiteFS ) ou Supabase( prerfencial) com `updated_at` + fila de conflitos campo-a-campo | Alto |, Deve criar utilizador no supabase
 | 3.2 | **Fatura AGT** | Integração SAF-T (AO) — geração de fatura/recibo com numeração, QR AGT, assinatura | Alto (legal) |
 | 3.3 | **Relatórios** | Faturação por período, margem real vs prevista, stock crítico, clientes recorrentes; export Excel (ClosedXML) | Médio |
 | 3.4 | **Backup automático cloud** | Upload semanal `kolora.db.zip` (`BackupService.cs:13` → `Supabase.Storage` `backups/{grafica_id}/`) + restauro 1-clique | Médio |
@@ -85,7 +96,7 @@ Dependências: `SyncState.VersaoSchemaLocal` + migrations incrementais; `OutboxE
 
 | # | Módulo | Stack | Receita |
 |---|---|---|---|
-| 4.1 | **App mobile cliente** | MAUI / Flutter: acompanhar orçamento, aprovar, pagar sinal via link | Retenção |
+| 4.1 | **app web pwa** | para fazer orcamentos online
 | 4.2 | **API pública KOLORA** | REST + API key por gráfica, catálogo/preços (ex: agências integram) | B2B |
 | 4.3 | **IA precificação** | Sugere margem por produto com base em histórico + custo material real (`StockService.cs:15` + `Orcamentos.Total`) | Margem |
 | 4.4 | **Marketplace completo** | Checkout, comissão KOLORA (10-15%), ranking gráficas, reviews | Marketplace |
@@ -94,7 +105,7 @@ Dependências: `SyncState.VersaoSchemaLocal` + migrations incrementais; `OutboxE
 
 ## Fase B/C — Débitos mapeados (pós-piloto A)
 
-### B — Sync Realtime + RLS (2-3 semanas, após piloto A)
+### B — Sync Realtime + RLS (2-3 semanas,  apóspiloto A)
 - [ ] `SupabaseService.cs:70` → `Supabase.Realtime` channel `pedidos_orcamento:grafica_id=eq.{id}` + fallback poll
 - [ ] `supabase/migrations/002_rls_jwt.sql` — `create policy isolamento_por_grafica on produtos for all using (grafica_id::text = (current_setting('request.jwt.claims',true)::jsonb ->> 'grafica_id'))`
 - [ ] `App.xaml.cs:33` → login Supabase Auth (magic link telefone) + persist `access_token` em `%AppData%/Kolora/auth.json`

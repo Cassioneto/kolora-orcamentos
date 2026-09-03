@@ -12,8 +12,8 @@ public class EfMaterialRepository : IMaterialRepository
 
     public async Task<List<Material>> GetAllAsync() => await _context.Materiais.AsNoTracking().ToListAsync();
     public async Task<Material?> GetByIdAsync(Guid id) => await _context.Materiais.FindAsync(id);
-    public async Task AddAsync(Material material) => await _context.Materiais.AddAsync(material);
-    public async Task UpdateAsync(Material material) => _context.Materiais.Update(material);
+    public Task AddAsync(Material material) { _context.Materiais.Add(material); return Task.CompletedTask; }
+    public Task UpdateAsync(Material material) { _context.Materiais.Update(material); return Task.CompletedTask; }
     public async Task DeleteAsync(Guid id)
     {
         var material = await _context.Materiais.FindAsync(id);

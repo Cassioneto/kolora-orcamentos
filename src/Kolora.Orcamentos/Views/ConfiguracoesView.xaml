@@ -32,6 +32,57 @@
                             <StackPanel Grid.Column="0" Margin="0,0,8,0"><TextBlock Text="Margem Global" FontSize="11" Foreground="#666"/><TextBox Text="{Binding MargemGlobal, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
                             <StackPanel Grid.Column="1"><TextBlock Text="Validade (dias)" FontSize="11" Foreground="#666"/><TextBox Text="{Binding ValidadeDias, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
                         </Grid>
+                        <StackPanel Margin="0,12,0,8">
+                            <TextBlock Text="Pagamentos (aparecem no PDF)" FontWeight="Bold" Foreground="#FF6B35" FontSize="12"/>
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                    <TextBlock Text="IBAN" FontSize="11" Foreground="#666"/>
+                                    <TextBox Text="{Binding Iban, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/>
+                                    <TextBlock Text="ex: AO06.0040.0000.1234.5678.9012.3" Foreground="#AAA" FontSize="9" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Nº Multicaixa Express (telefone/POS)" FontSize="11" Foreground="#666"/>
+                                    <TextBox Text="{Binding MulticaixaExpress, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/>
+                                    <TextBlock Text="ex: +244 923 000 000" Foreground="#AAA" FontSize="9" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                        <StackPanel Margin="0,12,0,8">
+                            <TextBlock Text="Supabase (sync opcional — backup na nuvem)" FontWeight="Bold" Foreground="#FF6B35" FontSize="12"/>
+                            <TextBlock Text="A anon key é cifrada com o Windows (DPAPI) e só abre na sua conta. Copiada para outro PC não serve." Foreground="#888" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                    <TextBlock Text="URL do projeto" FontSize="11" Foreground="#666"/>
+                                    <TextBox Text="{Binding SupabaseUrl, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/>
+                                    <TextBlock Text="ex: https://xxx.supabase.co" Foreground="#AAA" FontSize="9" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                    <TextBlock Text="Anon key" FontSize="11" Foreground="#666"/>
+                                    <TextBox Text="{Binding SupabaseKey, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/>
+                                </StackPanel>
+                                <Button Grid.Column="2" Content="Guardar key" Command="{Binding GuardarSupabaseAsyncCommand}" Background="#1A1A2E" Foreground="White" BorderThickness="0" Padding="12,8" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                                <Button Grid.Column="3" Content="Remover" Command="{Binding RemoverSupabaseCommand}" Padding="12,8" VerticalAlignment="Bottom" Margin="0,0,0,0"/>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock Text="Status: " FontSize="11" Foreground="#666"/>
+                                <TextBlock FontSize="11" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="OFF — app 100% offline"/>
+                                            <Setter Property="Foreground" Value="#888"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SyncAtivo}" Value="True">
+                                                    <Setter Property="Text" Value="ON — sync ativo"/>
+                                                    <Setter Property="Foreground" Value="#2E7D32"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">

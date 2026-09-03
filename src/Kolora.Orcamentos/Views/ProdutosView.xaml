@@ -4,7 +4,7 @@
     <Grid Margin="20">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <TextBlock Text="Produtos" FontSize="22" FontWeight="Bold" Foreground="#1A1A2E"/>
-        <TextBlock Grid.Row="0" Text="Cadastro genérico — DTF, lona, vinil, cartão, sublimação" Foreground="#666" Margin="0,28,0,0"/>
+        <TextBlock Grid.Row="0" Text="Cadastro genérico — DTF, lona, vinil, cartão, sublimação" Foreground="#666"/>
         <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="12" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,12,0,10">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="120"/><ColumnDefinition Width="120"/><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -23,7 +23,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom">
                     <CheckBox Content="Ativo" IsChecked="{Binding Ativo}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <Button Content="Novo" Command="{Binding NovoCommand}" Padding="10,6" Margin="0,0,6,0"/>
+                    <Button Content="Limpar" Command="{Binding LimparCommand}" Padding="10,6" Margin="0,0,6,0"/>
                     <Button Content="Salvar" Command="{Binding SalvarCommand}" Background="#FF6B35" Foreground="White" BorderThickness="0" Padding="14,6"/>
                 </StackPanel>
             </Grid>
@@ -32,7 +32,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nome" Binding="{Binding Nome}" Width="*"/>
                 <DataGridTextColumn Header="Tipo" Binding="{Binding TipoCalculo}" Width="100"/>
-                <DataGridTextColumn Header="Custo" Binding="{Binding PrecoCustoBase, StringFormat=C}" Width="110"/>
+                <DataGridTextColumn Header="Custo" Binding="{Binding PrecoCustoBase, StringFormat='Kz {0:N2}'}" Width="110"/>
                 <DataGridTextColumn Header="Margem" Binding="{Binding MargemPadrao, StringFormat=P0}" Width="80"/>
                 <DataGridCheckBoxColumn Header="Ativo" Binding="{Binding Ativo}" Width="60"/>
                 <DataGridTemplateColumn Header="" Width="140">

@@ -1,10 +1,46 @@
 <Application x:Class="Kolora.Orcamentos.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Kolora.Orcamentos.ViewModels"
+             xmlns:views="clr-namespace:Kolora.Orcamentos.Views"
+             xmlns:conv="clr-namespace:Kolora.Orcamentos.Helpers.Converters">
     <Application.Resources>
+        <conv:FileNameConverter x:Key="FileNameConv"/>
         <Style TargetType="Button">
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="8,6"/>
         </Style>
+
+        <!-- Mapa ViewModel -> View: garante DataContext antes de qualquer binding avaliar -->
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <views:DashboardView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProdutosViewModel}">
+            <views:ProdutosView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MateriaisViewModel}">
+            <views:MateriaisView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CalculadoraViewModel}">
+            <views:CalculadoraView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:StockViewModel}">
+            <views:StockView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:OrcamentosViewModel}">
+            <views:OrcamentosView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ClientesViewModel}">
+            <views:ClientesView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PedidosRecebidosViewModel}">
+            <views:PedidosRecebidosView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ConfiguracoesViewModel}">
+            <views:ConfiguracoesView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SobreViewModel}">
+            <views:SobreView/>
+        </DataTemplate>
     </Application.Resources>
 </Application>

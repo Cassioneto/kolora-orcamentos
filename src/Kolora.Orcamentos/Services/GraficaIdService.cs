@@ -4,6 +4,7 @@ using Serilog;
 using Kolora.Orcamentos.Data;
 using Kolora.Orcamentos.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Kolora.Orcamentos.Helpers;
 
 namespace Kolora.Orcamentos.Services;
 
@@ -29,23 +30,32 @@ public class GraficaIdService : IGraficaIdService
 
     public async Task EnsureInitializedAsync()
     {
+        // 1. Resolve o GraficaId do config.json (nunca regenera se já existir — spec §6)
         if (File.Exists(_configPath))
         {
-            var json = await File.ReadAllTextAsync(_configPath);
-            var doc = JsonDocument.Parse(json);
-            if (doc.RootElement.TryGetProperty("grafica_id", out var idProp) && Guid.TryParse(idProp.GetString(), out var gid))
+            try
             {
-                GraficaId = gid;
-                Log.Information("GraficaId carregado: {GraficaId}", GraficaId);
-                return;
+                var json = await File.ReadAllTextAsync(_configPath);
+                var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("grafica_id", out var idProp) && Guid.TryParse(idProp.GetString(), out var gid))
+                    GraficaId = gid;
             }
+            catch (Exception ex) { Log.Warning(ex, "config.json ilegível, gerando novo GraficaId"); }
         }
-        GraficaId = Guid.NewGuid();
-        var config = new { grafica_id = GraficaId.ToString(), criado_em = DateTime.UtcNow, versao_app = "1.0.0" };
-        await File.WriteAllTextAsync(_configPath, JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true }));
-        Log.Information("Novo GraficaId gerado: {GraficaId}", GraficaId);
+        if (GraficaId == Guid.Empty)
+        {
+            GraficaId = Guid.NewGuid();
+            var config = new { grafica_id = GraficaId.ToString(), criado_em = DateTime.UtcNow, versao_app = "1.0.0" };
+            await File.WriteAllTextAsync(_configPath, JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true }));
+            Log.Information("Novo GraficaId gerado: {GraficaId}", GraficaId);
+        }
+        else
+        {
+            Log.Information("GraficaId carregado: {GraficaId}", GraficaId);
+        }
 
-        // Ensure Grafica row exists
+        // 2. Garante schema + WAL + auto-recuperação das linhas da gráfica
+        //    (mesmo com config.json existente: se o DB for novo/apagado, recria Graficas/Configuracoes)
         try
         {
             using var db = new KoloraDbContext(_dbPath);
@@ -60,10 +70,11 @@ public class GraficaIdService : IGraficaIdService
                 {
                     Id = Guid.NewGuid(), Entidade = "Grafica", EntidadeId = GraficaId,
                     TipoOperacao = Models.Enums.TipoOperacaoOutbox.INSERT,
-                    PayloadJson = JsonSerializer.Serialize(grafica), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente"
+                    PayloadJson = OutboxJson.Serialize(grafica), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente"
                 };
                 db.OutboxEvents.Add(outbox);
                 await db.SaveChangesAsync();
+                Log.Information("Grafica recriada no banco local (auto-recuperacao)");
             }
             if (!await db.ConfiguracoesGrafica.AnyAsync(c => c.GraficaId == GraficaId))
             {

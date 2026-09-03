@@ -12,8 +12,8 @@ public class EfClienteRepository : IClienteRepository
 
     public async Task<List<Cliente>> GetAllAsync() => await _context.Clientes.AsNoTracking().ToListAsync();
     public async Task<Cliente?> GetByIdAsync(Guid id) => await _context.Clientes.FindAsync(id);
-    public async Task AddAsync(Cliente cliente) => await _context.Clientes.AddAsync(cliente);
-    public async Task UpdateAsync(Cliente cliente) => _context.Clientes.Update(cliente);
+    public Task AddAsync(Cliente cliente) { _context.Clientes.Add(cliente); return Task.CompletedTask; }
+    public Task UpdateAsync(Cliente cliente) { _context.Clientes.Update(cliente); return Task.CompletedTask; }
     public async Task DeleteAsync(Guid id)
     {
         var cliente = await _context.Clientes.FindAsync(id);

@@ -4,7 +4,7 @@
     <Grid Margin="20">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <TextBlock Text="Stock" FontSize="22" FontWeight="Bold" Foreground="#1A1A2E"/>
-        <TextBlock Text="Alerta quando Stock Atual ≤ Stock Mínimo. Abate automático ao fechar orçamento." Foreground="#666" Margin="0,28,0,0"/>
+        <TextBlock Grid.Row="0" Text="Alerta quando Stock Atual ≤ Stock Mínimo. Abate automático ao fechar orçamento." Foreground="#666"/>
         <Border Grid.Row="1" Background="#FFEBEE" CornerRadius="8" Padding="12" BorderBrush="#E53935" BorderThickness="1" Margin="0,12,0,10">
             <StackPanel>
                 <TextBlock Text="⚠️ Materiais Críticos" FontWeight="Bold" Foreground="#C62828" FontSize="12"/>

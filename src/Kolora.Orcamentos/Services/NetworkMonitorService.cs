@@ -25,8 +25,15 @@ public class NetworkMonitorService : INetworkMonitorService, IDisposable
 
     public async Task<bool> CheckConnectivityAsync()
     {
+        // Sem Supabase configurado: só verifica rede local (app segue 100% offline)
+        if (string.IsNullOrWhiteSpace(_supabaseUrl))
+        {
+            var lan = NetworkInterface.GetIsNetworkAvailable();
+            if (lan != _isOnline) { _isOnline = lan; ConnectivityChanged?.Invoke(this, _isOnline); }
+            return _isOnline;
+        }
         bool online = NetworkInterface.GetIsNetworkAvailable();
-        if (online && !string.IsNullOrWhiteSpace(_supabaseUrl))
+        if (online)
         {
             try
             {

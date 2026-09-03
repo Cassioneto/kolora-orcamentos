@@ -8,6 +8,7 @@ using Kolora.Orcamentos.Models.Entities;
 using Kolora.Orcamentos.Models.Enums;
 using Kolora.Orcamentos.Services;
 using Serilog;
+using Kolora.Orcamentos.Helpers;
 
 namespace Kolora.Orcamentos.ViewModels;
 public partial class PedidosRecebidosViewModel : BaseViewModel
@@ -26,7 +27,7 @@ public partial class PedidosRecebidosViewModel : BaseViewModel
         if (p.Status != StatusPedido.Novo) return;
         using var db = new KoloraDbContext(_grafica.DbPath);
         using var tx = await db.Database.BeginTransactionAsync();
-        try { var e = await db.PedidosOrcamento.FindAsync(p.Id); if (e == null) return; e.Status = StatusPedido.Visto; e.AtualizadoEm = DateTime.UtcNow; db.PedidosOrcamento.Update(e); db.OutboxEvents.Add(new OutboxEvent { Id = Guid.NewGuid(), Entidade = "PedidosOrcamento", EntidadeId = e.Id, TipoOperacao = TipoOperacaoOutbox.UPDATE, PayloadJson = JsonSerializer.Serialize(e), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente" }); await db.SaveChangesAsync(); await tx.CommitAsync(); await LoadAsync(); } catch (Exception ex) { await tx.RollbackAsync(); Log.Error(ex, "Marcar visto"); }
+        try { var e = await db.PedidosOrcamento.FindAsync(p.Id); if (e == null) return; e.Status = StatusPedido.Visto; e.AtualizadoEm = DateTime.UtcNow; db.PedidosOrcamento.Update(e); db.OutboxEvents.Add(new OutboxEvent { Id = Guid.NewGuid(), Entidade = "PedidosOrcamento", EntidadeId = e.Id, TipoOperacao = TipoOperacaoOutbox.UPDATE, PayloadJson = OutboxJson.Serialize(e), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente" }); await db.SaveChangesAsync(); await tx.CommitAsync(); await LoadAsync(); } catch (Exception ex) { await tx.RollbackAsync(); Log.Error(ex, "Marcar visto"); }
     }
     [RelayCommand] public async Task ExpirarAsync(PedidoOrcamento p)
     {

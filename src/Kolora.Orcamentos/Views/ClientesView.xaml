@@ -10,7 +10,7 @@
                 <StackPanel Grid.Column="0" Margin="0,0,8,0"><TextBlock Text="Nome" FontSize="11" Foreground="#666"/><TextBox Text="{Binding Nome, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
                 <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Telefone" FontSize="11" Foreground="#666"/><TextBox Text="{Binding Telefone, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom">
-                    <Button Content="Novo" Command="{Binding NovoCommand}" Padding="10,6" Margin="0,0,6,0"/>
+                    <Button Content="Limpar" Command="{Binding LimparCommand}" Padding="10,6" Margin="0,0,6,0"/>
                     <Button Content="Salvar" Command="{Binding SalvarCommand}" Background="#FF6B35" Foreground="White" BorderThickness="0" Padding="14,6"/>
                 </StackPanel>
             </Grid>

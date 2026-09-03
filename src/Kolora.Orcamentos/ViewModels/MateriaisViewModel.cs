@@ -8,6 +8,7 @@ using Kolora.Orcamentos.Models.Entities;
 using Kolora.Orcamentos.Models.Enums;
 using Kolora.Orcamentos.Services;
 using Serilog;
+using Kolora.Orcamentos.Helpers;
 
 namespace Kolora.Orcamentos.ViewModels;
 public partial class MateriaisViewModel : BaseViewModel
@@ -27,7 +28,7 @@ public partial class MateriaisViewModel : BaseViewModel
         var list = await db.Materiais.Where(m => m.GraficaId == _grafica.GraficaId).OrderBy(m => m.Nome).ToListAsync();
         Materiais = new ObservableCollection<Material>(list);
     }
-    [RelayCommand] public void Novo() { Selecionado = null; Nome = ""; Unidade = "unidade"; StockAtual = "0"; StockMinimo = "5"; }
+    [RelayCommand] public void Limpar() { Selecionado = null; Nome = ""; Unidade = "unidade"; StockAtual = "0"; StockMinimo = "5"; }
     [RelayCommand] public void Editar(Material m) { Selecionado = m; Nome = m.Nome; Unidade = m.Unidade; StockAtual = m.StockAtual.ToString("0.##"); StockMinimo = m.StockMinimo.ToString("0.##"); }
     [RelayCommand] public async Task SalvarAsync()
     {
@@ -41,14 +42,14 @@ public partial class MateriaisViewModel : BaseViewModel
             Material mat; string op;
             if (Selecionado == null) { mat = new Material { Id = Guid.NewGuid(), GraficaId = _grafica.GraficaId, Nome = Nome.Trim(), Unidade = Unidade, StockAtual = sa, StockMinimo = sm, AtualizadoEm = DateTime.UtcNow }; db.Materiais.Add(mat); op = "INSERT"; }
             else { mat = await db.Materiais.FindAsync(Selecionado.Id) ?? Selecionado; mat.Nome = Nome.Trim(); mat.Unidade = Unidade; mat.StockAtual = sa; mat.StockMinimo = sm; mat.AtualizadoEm = DateTime.UtcNow; db.Materiais.Update(mat); op = "UPDATE"; }
-            db.OutboxEvents.Add(new OutboxEvent { Id = Guid.NewGuid(), Entidade = "Material", EntidadeId = mat.Id, TipoOperacao = op == "INSERT" ? TipoOperacaoOutbox.INSERT : TipoOperacaoOutbox.UPDATE, PayloadJson = JsonSerializer.Serialize(mat), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente" });
-            await db.SaveChangesAsync(); await tx.CommitAsync(); await LoadAsync(); Novo();
+            db.OutboxEvents.Add(new OutboxEvent { Id = Guid.NewGuid(), Entidade = "Material", EntidadeId = mat.Id, TipoOperacao = op == "INSERT" ? TipoOperacaoOutbox.INSERT : TipoOperacaoOutbox.UPDATE, PayloadJson = OutboxJson.Serialize(mat), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente" });
+            await db.SaveChangesAsync(); await tx.CommitAsync(); await LoadAsync(); Limpar();
         } catch (Exception ex) { await tx.RollbackAsync(); Log.Error(ex, "Salvar material"); }
     }
     [RelayCommand] public async Task ExcluirAsync(Material m)
     {
         using var db = new KoloraDbContext(_grafica.DbPath);
         using var tx = await db.Database.BeginTransactionAsync();
-        try { var e = await db.Materiais.FindAsync(m.Id); if (e == null) return; db.Materiais.Remove(e); db.OutboxEvents.Add(new OutboxEvent { Id = Guid.NewGuid(), Entidade = "Material", EntidadeId = m.Id, TipoOperacao = TipoOperacaoOutbox.DELETE, PayloadJson = JsonSerializer.Serialize(e), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente" }); await db.SaveChangesAsync(); await tx.CommitAsync(); await LoadAsync(); } catch (Exception ex) { await tx.RollbackAsync(); Log.Error(ex, "Excluir material"); }
+        try { var e = await db.Materiais.FindAsync(m.Id); if (e == null) return; db.Materiais.Remove(e); db.OutboxEvents.Add(new OutboxEvent { Id = Guid.NewGuid(), Entidade = "Material", EntidadeId = m.Id, TipoOperacao = TipoOperacaoOutbox.DELETE, PayloadJson = OutboxJson.Serialize(e), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente" }); await db.SaveChangesAsync(); await tx.CommitAsync(); await LoadAsync(); } catch (Exception ex) { await tx.RollbackAsync(); Log.Error(ex, "Excluir material"); }
     }
 }

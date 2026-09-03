@@ -15,7 +15,7 @@
                 <StackPanel><TextBlock Text="Clientes" Foreground="#888" FontSize="11"/><TextBlock Text="{Binding TotalClientes}" FontSize="28" FontWeight="Bold" Foreground="#1A1A2E"/></StackPanel>
             </Border>
             <Border Background="White" CornerRadius="8" Padding="16" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,0,0,8">
-                <StackPanel><TextBlock Text="Orçamentos" Foreground="#888" FontSize="11"/><TextBlock Text="{Binding TotalOrcamentos}" FontSize="28" FontWeight="Bold" Foreground="#1A1A2E"/><TextBlock Text="{Binding FaturacaoMes, StringFormat='Faturação mês: {0:C}'}" Foreground="#2E7D32" FontSize="11"/></StackPanel>
+                <StackPanel><TextBlock Text="Orçamentos" Foreground="#888" FontSize="11"/><TextBlock Text="{Binding TotalOrcamentos}" FontSize="28" FontWeight="Bold" Foreground="#1A1A2E"/><TextBlock Text="{Binding FaturacaoMes, StringFormat='Faturação mês: Kz {0:N2}'}" Foreground="#2E7D32" FontSize="11"/></StackPanel>
             </Border>
             <Border Background="#FFF3E0" CornerRadius="8" Padding="16" BorderBrush="#FF6B35" BorderThickness="1" Margin="0,0,8,0">
                 <StackPanel><TextBlock Text="⚠️ Stock Crítico" Foreground="#E65100" FontSize="11" FontWeight="Bold"/><TextBlock Text="{Binding StockCritico}" FontSize="28" FontWeight="Bold" Foreground="#E65100"/><TextBlock Text="materiais abaixo do mínimo" Foreground="#888" FontSize="11"/></StackPanel>

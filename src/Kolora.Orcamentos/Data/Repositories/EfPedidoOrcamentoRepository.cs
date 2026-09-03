@@ -13,8 +13,8 @@ public class EfPedidoOrcamentoRepository : IPedidoOrcamentoRepository
     public async Task<List<PedidoOrcamento>> GetAllAsync() => await _context.PedidosOrcamento.AsNoTracking().ToListAsync();
     public async Task<PedidoOrcamento?> GetByIdAsync(Guid id) => await _context.PedidosOrcamento.FindAsync(id);
     public async Task<List<PedidoOrcamento>> GetNovosAsync() => await _context.PedidosOrcamento.Where(p => p.Status == Kolora.Orcamentos.Models.Enums.StatusPedido.Novo).AsNoTracking().ToListAsync();
-    public async Task AddAsync(PedidoOrcamento pedido) => await _context.PedidosOrcamento.AddAsync(pedido);
-    public async Task UpdateAsync(PedidoOrcamento pedido) => _context.PedidosOrcamento.Update(pedido);
+    public Task AddAsync(PedidoOrcamento pedido) { _context.PedidosOrcamento.Add(pedido); return Task.CompletedTask; }
+    public Task UpdateAsync(PedidoOrcamento pedido) { _context.PedidosOrcamento.Update(pedido); return Task.CompletedTask; }
     public async Task DeleteAsync(Guid id)
     {
         var pedido = await _context.PedidosOrcamento.FindAsync(id);

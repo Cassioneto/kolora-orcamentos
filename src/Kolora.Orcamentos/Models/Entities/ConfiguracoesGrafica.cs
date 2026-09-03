@@ -9,5 +9,7 @@ public class ConfiguracoesGrafica
     public string? MensagemRodapePdf { get; set; }
     public decimal MargemPadraoGlobal { get; set; }
     public int ValidadePadraoDias { get; set; } = 3;
+    public string? Iban { get; set; }
+    public string? MulticaixaExpressNumero { get; set; }
     public DateTime AtualizadoEm { get; set; }
 }

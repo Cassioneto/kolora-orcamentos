@@ -1,27 +1,31 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Kolora.Orcamentos.Data.Migrations
 {
+    /// <inheritdoc />
     public partial class InitialCreate : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Graficas",
+                name: "Clientes",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    GraficaId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Nome = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Telefone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    Localizacao = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    LogoPath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     CriadoEm = table.Column<DateTime>(type: "TEXT", nullable: false),
                     AtualizadoEm = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
-                constraints: table => table.PrimaryKey("PK_Graficas", x => x.Id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Clientes", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "ConfiguracoesGrafica",
@@ -39,23 +43,24 @@ namespace Kolora.Orcamentos.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ConfiguracoesGrafica", x => x.Id);
-                    table.ForeignKey("FK_ConfiguracoesGrafica_Graficas_GraficaId", x => x.GraficaId, "Graficas", "Id", onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Produtos",
+                name: "Graficas",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    GraficaId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Nome = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    TipoCalculo = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    PrecoCustoBase = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    MargemPadrao = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
-                    Ativo = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Telefone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    Localizacao = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    LogoPath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    CriadoEm = table.Column<DateTime>(type: "TEXT", nullable: false),
                     AtualizadoEm = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
-                constraints: table => table.PrimaryKey("PK_Produtos", x => x.Id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Graficas", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Materiais",
@@ -69,20 +74,10 @@ namespace Kolora.Orcamentos.Data.Migrations
                     StockMinimo = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     AtualizadoEm = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
-                constraints: table => table.PrimaryKey("PK_Materiais", x => x.Id));
-
-            migrationBuilder.CreateTable(
-                name: "Clientes",
-                columns: table => new
+                constraints: table =>
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    GraficaId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Nome = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Telefone = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    CriadoEm = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    AtualizadoEm = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table => table.PrimaryKey("PK_Clientes", x => x.Id));
+                    table.PrimaryKey("PK_Materiais", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Orcamentos",
@@ -98,7 +93,29 @@ namespace Kolora.Orcamentos.Data.Migrations
                     CaminhoPdf = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     AtualizadoEm = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
-                constraints: table => table.PrimaryKey("PK_Orcamentos", x => x.Id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orcamentos", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OutboxEvents",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Entidade = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    EntidadeId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    TipoOperacao = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    PayloadJson = table.Column<string>(type: "TEXT", nullable: false),
+                    CriadoEm = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    TentativasEnvio = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatusSync = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    UltimoErro = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OutboxEvents", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "PedidosOrcamento",
@@ -118,34 +135,43 @@ namespace Kolora.Orcamentos.Data.Migrations
                     RecebidoLocalEm = table.Column<DateTime>(type: "TEXT", nullable: false),
                     AtualizadoEm = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
-                constraints: table => table.PrimaryKey("PK_PedidosOrcamento", x => x.Id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PedidosOrcamento", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
-                name: "OutboxEvents",
+                name: "Produtos",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Entidade = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    EntidadeId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TipoOperacao = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
-                    PayloadJson = table.Column<string>(type: "TEXT", nullable: false),
-                    CriadoEm = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    TentativasEnvio = table.Column<int>(type: "INTEGER", nullable: false),
-                    StatusSync = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    UltimoErro = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true)
+                    GraficaId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Nome = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    TipoCalculo = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    PrecoCustoBase = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MargemPadrao = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Ativo = table.Column<bool>(type: "INTEGER", nullable: false),
+                    AtualizadoEm = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
-                constraints: table => table.PrimaryKey("PK_OutboxEvents", x => x.Id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Produtos", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "SyncState",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     UltimoPullCatalogo = table.Column<DateTime>(type: "TEXT", nullable: true),
                     UltimoPullPedidos = table.Column<DateTime>(type: "TEXT", nullable: true),
                     VersaoSchemaLocal = table.Column<int>(type: "INTEGER", nullable: false)
                 },
-                constraints: table => table.PrimaryKey("PK_SyncState", x => x.Id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SyncState", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "ProdutoMateriais",
@@ -158,30 +184,79 @@ namespace Kolora.Orcamentos.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ProdutoMateriais", x => new { x.ProdutoId, x.MaterialId });
-                    table.ForeignKey("FK_ProdutoMateriais_Materiais_MaterialId", x => x.MaterialId, "Materiais", "Id", onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey("FK_ProdutoMateriais_Produtos_ProdutoId", x => x.ProdutoId, "Produtos", "Id", onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProdutoMateriais_Materiais_MaterialId",
+                        column: x => x.MaterialId,
+                        principalTable: "Materiais",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProdutoMateriais_Produtos_ProdutoId",
+                        column: x => x.ProdutoId,
+                        principalTable: "Produtos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex("IX_ConfiguracoesGrafica_GraficaId", "ConfiguracoesGrafica", "GraficaId", unique: true);
-            migrationBuilder.CreateIndex("IX_OutboxEvents_CriadoEm", "OutboxEvents", "CriadoEm");
-            migrationBuilder.CreateIndex("IX_OutboxEvents_StatusSync", "OutboxEvents", "StatusSync");
-            migrationBuilder.CreateIndex("IX_ProdutoMateriais_MaterialId", "ProdutoMateriais", "MaterialId");
+            migrationBuilder.InsertData(
+                table: "SyncState",
+                columns: new[] { "Id", "UltimoPullCatalogo", "UltimoPullPedidos", "VersaoSchemaLocal" },
+                values: new object[] { 1, null, null, 1 });
 
-            migrationBuilder.InsertData("SyncState", new[] { "Id", "VersaoSchemaLocal" }, new object[] { 1, 1 });
+            migrationBuilder.CreateIndex(
+                name: "IX_ConfiguracoesGrafica_GraficaId",
+                table: "ConfiguracoesGrafica",
+                column: "GraficaId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboxEvents_CriadoEm",
+                table: "OutboxEvents",
+                column: "CriadoEm");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboxEvents_StatusSync",
+                table: "OutboxEvents",
+                column: "StatusSync");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProdutoMateriais_MaterialId",
+                table: "ProdutoMateriais",
+                column: "MaterialId");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "ProdutoMateriais");
-            migrationBuilder.DropTable(name: "SyncState");
-            migrationBuilder.DropTable(name: "OutboxEvents");
-            migrationBuilder.DropTable(name: "PedidosOrcamento");
-            migrationBuilder.DropTable(name: "Orcamentos");
-            migrationBuilder.DropTable(name: "Clientes");
-            migrationBuilder.DropTable(name: "Materiais");
-            migrationBuilder.DropTable(name: "Produtos");
-            migrationBuilder.DropTable(name: "ConfiguracoesGrafica");
-            migrationBuilder.DropTable(name: "Graficas");
+            migrationBuilder.DropTable(
+                name: "Clientes");
+
+            migrationBuilder.DropTable(
+                name: "ConfiguracoesGrafica");
+
+            migrationBuilder.DropTable(
+                name: "Graficas");
+
+            migrationBuilder.DropTable(
+                name: "Orcamentos");
+
+            migrationBuilder.DropTable(
+                name: "OutboxEvents");
+
+            migrationBuilder.DropTable(
+                name: "PedidosOrcamento");
+
+            migrationBuilder.DropTable(
+                name: "ProdutoMateriais");
+
+            migrationBuilder.DropTable(
+                name: "SyncState");
+
+            migrationBuilder.DropTable(
+                name: "Materiais");
+
+            migrationBuilder.DropTable(
+                name: "Produtos");
         }
     }
 }

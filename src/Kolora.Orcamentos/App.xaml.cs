@@ -26,6 +26,18 @@ public partial class App : Application
             .WriteTo.Async(a => a.File(Path.Combine(appData, "logs", "kolora-.log"), rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14))
             .CreateLogger();
 
+        // Handlers globais: erros de binding/comando/async deixam de ser silenciosos
+        DispatcherUnhandledException += (_, ex) =>
+        {
+            Log.Error(ex.Exception, "Excecao nao tratada na UI");
+            MessageBox.Show("Ocorreu um erro: " + ex.Exception.Message, "KOLORA", MessageBoxButton.OK, MessageBoxImage.Error);
+            ex.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, ex) =>
+            Log.Fatal(ex.ExceptionObject as Exception, "Excecao nao tratada (dominio)");
+        TaskScheduler.UnobservedTaskException += (_, ex) =>
+            Log.Error(ex.Exception, "Task nao observada");
+
         try
         {
             Log.Information("KOLORA Gestor iniciando...");
@@ -42,7 +54,9 @@ public partial class App : Application
                 {
                     services.AddSingleton<GraficaIdService>();
                     services.AddSingleton<IGraficaIdService>(sp => sp.GetRequiredService<GraficaIdService>());
-                    services.AddSingleton<IConfigurationService, ConfigurationService>();
+                    services.AddSingleton<SupabaseKeyVault>();
+                    services.AddSingleton<ConfigurationService>();
+                    services.AddSingleton<IConfigurationService>(sp => sp.GetRequiredService<ConfigurationService>());
                     services.AddSingleton<INetworkMonitorService, NetworkMonitorService>();
                     services.AddSingleton<ISupabaseService, SupabaseService>();
                     services.AddSingleton<ISyncService, SyncBackgroundService>();

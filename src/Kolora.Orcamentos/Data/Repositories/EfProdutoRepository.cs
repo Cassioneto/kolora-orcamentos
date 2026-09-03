@@ -13,8 +13,8 @@ public class EfProdutoRepository : IProdutoRepository
     public async Task<List<Produto>> GetAllAsync() => await _context.Produtos.AsNoTracking().ToListAsync();
     public async Task<Produto?> GetByIdAsync(Guid id) => await _context.Produtos.FindAsync(id);
     public async Task<List<Produto>> GetAtivosAsync() => await _context.Produtos.Where(p => p.Ativo).AsNoTracking().ToListAsync();
-    public async Task AddAsync(Produto produto) => await _context.Produtos.AddAsync(produto);
-    public async Task UpdateAsync(Produto produto) => _context.Produtos.Update(produto);
+    public Task AddAsync(Produto produto) { _context.Produtos.Add(produto); return Task.CompletedTask; }
+    public Task UpdateAsync(Produto produto) { _context.Produtos.Update(produto); return Task.CompletedTask; }
     public async Task DeleteAsync(Guid id)
     {
         var produto = await _context.Produtos.FindAsync(id);

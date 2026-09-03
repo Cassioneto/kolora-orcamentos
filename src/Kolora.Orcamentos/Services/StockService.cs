@@ -3,6 +3,7 @@ using Kolora.Orcamentos.Data;
 using Kolora.Orcamentos.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Kolora.Orcamentos.Helpers;
 
 namespace Kolora.Orcamentos.Services;
 
@@ -29,7 +30,7 @@ public class StockService
                 {
                     Id = Guid.NewGuid(), Entidade = "Material", EntidadeId = mat.Id,
                     TipoOperacao = Models.Enums.TipoOperacaoOutbox.UPDATE,
-                    PayloadJson = JsonSerializer.Serialize(mat), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente"
+                    PayloadJson = OutboxJson.Serialize(mat), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente"
                 };
                 db.OutboxEvents.Add(outbox);
             }
