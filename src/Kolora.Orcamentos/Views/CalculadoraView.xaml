@@ -1,0 +1,35 @@
+<UserControl x:Class="Kolora.Orcamentos.Views.CalculadoraView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="20">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <TextBlock Text="Calculadora Universal" FontSize="22" FontWeight="Bold" Foreground="#1A1A2E"/>
+        <TextBlock Text="Custo real + margem → preço final. Suporta M2, Unidade e MetroLinear." Foreground="#666" Margin="0,28,0,0"/>
+        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16" BorderBrush="#E0E0E0" BorderThickness="1" Margin="0,12,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="110"/><ColumnDefinition Width="80"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,8,0"><TextBlock Text="Produto" FontSize="11" Foreground="#666"/><ComboBox ItemsSource="{Binding Produtos}" SelectedItem="{Binding ProdutoSelecionado}" DisplayMemberPath="Nome" Margin="0,2"/></StackPanel>
+                <StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Largura (m)" FontSize="11" Foreground="#666"/><TextBox Text="{Binding Largura, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
+                <StackPanel Grid.Column="2" Margin="0,0,8,0"><TextBlock Text="Altura (m)" FontSize="11" Foreground="#666"/><TextBox Text="{Binding Altura, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
+                <StackPanel Grid.Column="3" Margin="0,0,8,0"><TextBlock Text="Qtd" FontSize="11" Foreground="#666"/><TextBox Text="{Binding Quantidade, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
+                <StackPanel Grid.Column="4" Margin="0,0,8,0"><TextBlock Text="Margem" FontSize="11" Foreground="#666"/><TextBox Text="{Binding Margem, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/></StackPanel>
+            </Grid>
+        </Border>
+        <Border Grid.Row="2" Background="#1A1A2E" CornerRadius="8" Padding="16" Margin="0,0,0,10">
+            <StackPanel>
+                <TextBlock Text="{Binding Detalhe}" Foreground="White" FontSize="12" TextWrapping="Wrap"/>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Border Background="#FF6B35" CornerRadius="6" Padding="12,8" Margin="0,0,10,0">
+                        <StackPanel><TextBlock Text="CUSTO" Foreground="White" FontSize="10"/><TextBlock Text="{Binding CustoCalculado, StringFormat=C}" Foreground="White" FontSize="16" FontWeight="Bold"/></StackPanel>
+                    </Border>
+                    <Border Background="White" CornerRadius="6" Padding="12,8">
+                        <StackPanel><TextBlock Text="PREÇO FINAL" Foreground="#1A1A2E" FontSize="10"/><TextBlock Text="{Binding PrecoCalculado, StringFormat=C}" Foreground="#1A1A2E" FontSize="16" FontWeight="Bold"/></StackPanel>
+                    </Border>
+                    <Button Content="Limpar" Command="{Binding LimparCommand}" Margin="12,0,0,0" Padding="10,6" VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        <TextBlock Grid.Row="3" Text="Dica: use esta calculadora para pré-visualizar antes de adicionar itens ao orçamento. O cálculo considera TipoCalculo do produto (M2 multiplica largura×altura×qtd)." Foreground="#888" FontSize="11" TextWrapping="Wrap"/>
+    </Grid>
+</UserControl>
