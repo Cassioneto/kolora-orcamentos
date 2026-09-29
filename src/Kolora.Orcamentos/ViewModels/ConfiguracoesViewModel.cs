@@ -15,6 +15,7 @@ public partial class ConfiguracoesViewModel : BaseViewModel
     private readonly BackupService _backup;
     private readonly ConfigurationService _cfg;
     private readonly SupabaseKeyVault _vault;
+    private readonly IWhatsAppService _wpp;
     [ObservableProperty] private string _nomeGrafica = "";
     [ObservableProperty] private string _telefone = "";
     [ObservableProperty] private string _localizacao = "";
@@ -29,8 +30,91 @@ public partial class ConfiguracoesViewModel : BaseViewModel
     [ObservableProperty] private string _supabaseKey = "";
     [ObservableProperty] private bool _syncAtivo;
     [ObservableProperty] private string _mensagem = "";
-    public ConfiguracoesViewModel(GraficaIdService grafica, BackupService backup, ConfigurationService cfg, SupabaseKeyVault vault)
-    { _grafica = grafica; _backup = backup; _cfg = cfg; _vault = vault; _ = LoadAsync(); }
+    // ---- WhatsApp (Baileys) ----
+    [ObservableProperty] private string _wppStatusTexto = "Desligado";
+    [ObservableProperty] private bool _wppLigado;
+    [ObservableProperty] private bool _wppTemQr;
+    [ObservableProperty] private System.Windows.Media.Imaging.BitmapImage? _wppQrImagem;
+    [ObservableProperty] private int _wppPendentes;
+    [ObservableProperty] private string _wppErro = "";
+    public ConfiguracoesViewModel(GraficaIdService grafica, BackupService backup, ConfigurationService cfg, SupabaseKeyVault vault, IWhatsAppService wpp)
+    {
+        _grafica = grafica; _backup = backup; _cfg = cfg; _vault = vault; _wpp = wpp;
+        _wpp.EstadoMudou += (_, _) => System.Windows.Application.Current?.Dispatcher.Invoke(AtualizarWpp);
+        _ = LoadAsync();
+        AtualizarWpp();
+        _ = ContarFilaWppAsync();
+    }
+
+    private void AtualizarWpp()
+    {
+        WppStatusTexto = _wpp.Status switch
+        {
+            WhatsAppStatus.Ligado => "Ligado ✓",
+            WhatsAppStatus.Ligando => "A ligar...",
+            WhatsAppStatus.AguardandoQR => "Escaneie o QR com o WhatsApp",
+            WhatsAppStatus.Erro => "Erro de ligação",
+            _ => "Desligado",
+        };
+        WppLigado = _wpp.Ligado;
+        WppTemQr = _wpp.Status == WhatsAppStatus.AguardandoQR && _wpp.QrPng != null;
+        WppErro = _wpp.UltimoErro;
+        if (WppTemQr && _wpp.QrPng != null)
+        {
+            try
+            {
+                using var ms = new MemoryStream(_wpp.QrPng);
+                var bmp = new System.Windows.Media.Imaging.BitmapImage();
+                bmp.BeginInit();
+                bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bmp.StreamSource = ms;
+                bmp.EndInit();
+                bmp.Freeze();
+                WppQrImagem = bmp;
+            }
+            catch { WppQrImagem = null; }
+        }
+        else WppQrImagem = null;
+    }
+
+    private async Task ContarFilaWppAsync()
+    {
+        try
+        {
+            using var db = new KoloraDbContext(_grafica.DbPath);
+            WppPendentes = await db.FilaEnvioWhatsApp.CountAsync(f => f.GraficaId == _grafica.GraficaId && f.Status == "Pendente");
+        }
+        catch { }
+    }
+
+    [RelayCommand]
+    public async Task LigarWhatsAppAsync()
+    {
+        Log.Information("UI: clique Ligar WhatsApp");
+        try
+        {
+            Mensagem = "A ligar WhatsApp...";
+            await _wpp.LigarAsync();
+            await ContarFilaWppAsync();
+        }
+        catch (Exception ex) { Log.Error(ex, "UI: erro ao ligar WhatsApp"); Mensagem = "Erro: " + ex.Message; }
+    }
+
+    [RelayCommand]
+    public async Task DesligarWhatsAppAsync()
+    {
+        await _wpp.DesligarAsync();
+        AtualizarWpp();
+        Mensagem = "WhatsApp desligado. A fila continua guardada.";
+    }
+
+    [RelayCommand]
+    public async Task DesemparelharWhatsAppAsync()
+    {
+        await _wpp.DesligarAsync(desemparelhar: true);
+        AtualizarWpp();
+        Mensagem = "Sessão apagada. Para ligar de novo será preciso escanear o QR.";
+    }
     [RelayCommand] public async Task LoadAsync()
     {
         using var db = new KoloraDbContext(_grafica.DbPath);

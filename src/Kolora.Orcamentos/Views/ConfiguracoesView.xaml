@@ -62,7 +62,7 @@
                                     <TextBlock Text="Anon key" FontSize="11" Foreground="#666"/>
                                     <TextBox Text="{Binding SupabaseKey, UpdateSourceTrigger=PropertyChanged}" Padding="6" Margin="0,2"/>
                                 </StackPanel>
-                                <Button Grid.Column="2" Content="Guardar key" Command="{Binding GuardarSupabaseAsyncCommand}" Background="#1A1A2E" Foreground="White" BorderThickness="0" Padding="12,8" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
+                                <Button Grid.Column="2" Content="Guardar key" Command="{Binding GuardarSupabaseCommand}" Background="#1A1A2E" Foreground="White" BorderThickness="0" Padding="12,8" VerticalAlignment="Bottom" Margin="0,0,6,0"/>
                                 <Button Grid.Column="3" Content="Remover" Command="{Binding RemoverSupabaseCommand}" Padding="12,8" VerticalAlignment="Bottom" Margin="0,0,0,0"/>
                             </Grid>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
@@ -83,6 +83,40 @@
                                 </TextBlock>
                             </StackPanel>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Background="White" CornerRadius="8" Padding="16" BorderBrush="#25D366" BorderThickness="1" Margin="0,0,0,10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="WhatsApp — enviar orçamentos em 1 clique" FontWeight="Bold" Foreground="#1A1A2E"/>
+                            <Border Background="#25D366" CornerRadius="10" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding WppStatusTexto}" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Liga a sessão uma vez (escaneie o QR com o WhatsApp do negócio). Depois, cada orçamento sai em 1 clique — sem internet, fica na fila e envia sozinho." Foreground="#888" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Button Content="Ligar WhatsApp" Command="{Binding LigarWhatsAppCommand}" Background="#25D366" Foreground="White" BorderThickness="0" FontWeight="Bold" Padding="14,8" Margin="0,0,8,0"/>
+                            <Button Content="Desligar" Command="{Binding DesligarWhatsAppCommand}" Padding="12,8" Margin="0,0,8,0"/>
+                            <Button Content="Desemparelhar" Command="{Binding DesemparelharWhatsAppCommand}" Padding="12,8"/>
+                            <TextBlock Text="{Binding WppPendentes, StringFormat='📲 {0} na fila'}" Foreground="#2E7D32" FontSize="11" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                        </StackPanel>
+                        <Border Background="#F5F5F5" CornerRadius="8" Padding="12" HorizontalAlignment="Left">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding WppTemQr}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="WhatsApp → Dispositivos vinculados → Vincular dispositivo, e escaneie:" FontSize="11" Foreground="#444" Margin="0,0,0,6"/>
+                                <Image Source="{Binding WppQrImagem}" Width="220" Height="220" Stretch="Uniform"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="{Binding WppErro}" Foreground="#E53935" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">

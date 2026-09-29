@@ -34,8 +34,7 @@
 - [x] Build 0 erros (6 warnings `CS1998` intencionais) + `MateriaisView.xaml:26` fix (removido `StockAlertConverter` inexistente)
 - [x] Publish validado: **227 MB self-contained** vs **35 MB framework-dependent** (`--self-contained false`, testado `2026-09-02`, requer .NET 8 Runtime) — alvo <80MB atingido no modo framework-dependent
 
-**Hardening offline-first (2026-09-03) — validado com smoke test:**
-- [x] **Migration real via dotnet-ef** (`Data/Migrations/20260903022251_InitialCreate.cs` + snapshot, via `DesignTimeFactory.cs`) — substituiu a migration manual que não registrava em `__EFMigrationsHistory` (causava `no such table` no 1º start)
+**Hardening offline-first (2026-09-03) — validado com smoke test:**- [x] **Migration real via dotnet-ef** (`Data/Migrations/20260903022251_InitialCreate.cs` + snapshot, via `DesignTimeFactory.cs`) — substituiu a migration manual que não registrava em `__EFMigrationsHistory` (causava `no such table` no 1º start)
 - [x] **Auto-recuperação da gráfica** `GraficaIdService.cs:31` — mesmo com `config.json` existente, recria `Graficas`/`ConfiguracoesGrafica`/Outbox INSERT se o DB for novo (log: `Grafica recriada no banco local`)
 - [x] **Sync nunca descarta offline** `SyncBackgroundService.cs:1` (reescrito) — eventos ficam `Pendente` para sempre sem rede/config; backoff por última tentativa (30s/2m/10m/1h); push/pull só roda se `IsSupabaseConfigured && IsOnline`; loops separados push 30s / pedidos 20s; evento `NovosPedidos` para badge
 - [x] **Gate `IsSupabaseConfigured`** (`IConfigurationService.cs:1`) — app 100% funcional com `appsettings.json` vazio; `NetworkMonitorService.cs:26` não faz ping sem URL
@@ -44,6 +43,20 @@
 - [x] **0 warnings 0 erros** (repositórios `Ef*.cs` convertidos para `Task` síncrono)
 - [x] **Evidência smoke test offline:** app rodou 22s sem Supabase (PID ativo, zero `[ERR]`/`[FTL]` no log), 11 tabelas + `__EFMigrationsHistory` criadas, WAL ativo (`.db-wal` presente), seed 5 produtos, `Graficas=1`, `ConfiguracoesGrafica=1`, `OutboxEvents=1 (Grafica, INSERT, Pendente)`, `SyncState=1`
 - [x] Publish pós-fix: **34.2 MB framework-dependent** + **180 MB self-contained**
+
+**WhatsApp 1-clique via BaileysCSharp (2026-09-04) — offline-first mantido:**
+- [x] Lib vendored `BaileysCSharp-main/` ligada à solution + `ProjectReference` (compila 0 erros) + `QRCoder` p/ render do QR
+- [x] **Patch mínimo na lib** `BaileysCSharp/.../SocketConfig.cs:Root` (fallback `AppContext.BaseDirectory` quando `Assembly.Location` vazio em single-file) — sem isto o socket nunca cria no .exe distribuído
+- [x] `FilaEnvioWhatsApp` (`Models/Entities` + migration `20260904174715_AddFilaEnvioWhatsApp`) — clique NUNCA depende de rede: enfileira local (idempotente por orçamento), worker drena depois
+- [x] `WhatsAppService.cs:1` — sessão em `%AppData%/Kolora/whatsapp` (creds.json + keys/), QR via evento, reconnect automático (exceto LoggedOut → apaga sessão), auto-liga se sessão pareada, `EnviarPdfAsync` (legenda + PDF)
+- [x] `WhatsAppBackgroundService.cs:1` — drena FIFO a cada 30s só com internet + sessão ligada, backoff 30s/2m/10min/1h, nunca descarta
+- [x] UI: botão verde **WhatsApp** por linha do histórico + contador `📲 N na fila` (`OrcamentosView/VM`); seção WhatsApp em Configurações (status, Ligar/Desligar/Desemparelhar, QR 220px, pendentes)
+- [x] `Helpers/TelefoneWhatsApp.cs:1` — normalização Angola (923.../+244/00244 → `2449XXXXXXXX@s.whatsapp.net`)
+- [x] Smoke: migration aplicada, enqueue/dequeue validados no SQLite, app abre limpo (zero ERR/FTL), publish sc **188.3 MB**
+- [x] **Fix store.db locked (2026-09-05):** `DescartarSocket()` (WSDisconnect+Dispose) antes de criar/anular socket — o LiteDB interno segurava lock exclusivo e toda reconexão falhava em loop; handler de Close agora descarta em vez de só anular; `ApagarSessao` limpa store.db; `IOException` de lock vira mensagem amigável sem auto-retry agressivo
+- [x] **Trava single-instance** (`App.xaml.cs`: Mutex `KoloraGestor-SingleInstance`) — segunda janela agora avisa e fecha em vez de brigar por kolora.db/store.db
+- [x] **Fix QR não aparece (2026-09-06):** a lib não tem timeout no handshake (`ConnectAsync` sem CancellationToken) e o emit de desconexão está comentado — rede travada = botão morto sem log. Watchdog próprio de 45s em `WhatsAppService.cs` (descarta socket, mostra erro acionável, retry com backoff 10s→5min); logs de progresso em cada etapa do `ConectarInterno`
+- [ ] Pendente de teste real: parear com telemóvel (Configurações → Ligar → escanear QR) e envio fim-a-fim
 
 **Débitos restantes Fase 1 (para fechar piloto):**
 - Validação de campos (nome obrigatório já, falta máscara telefone AO + margem 0-200% + custo >0)

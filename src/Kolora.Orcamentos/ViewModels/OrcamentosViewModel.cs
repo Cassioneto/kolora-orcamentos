@@ -20,6 +20,7 @@ public partial class OrcamentosViewModel : BaseViewModel
     private readonly CalculadoraService _calc;
     private readonly PdfService _pdf;
     private readonly StockService _stock;
+    private readonly IWhatsAppService _wpp;
     [ObservableProperty] private ObservableCollection<Orcamento> _orcamentos = new();
     [ObservableProperty] private ObservableCollection<Cliente> _clientes = new();
     [ObservableProperty] private ObservableCollection<Produto> _produtos = new();
@@ -31,9 +32,10 @@ public partial class OrcamentosViewModel : BaseViewModel
     [ObservableProperty] private ObservableCollection<ItemOrcamentoVm> _itens = new();
     [ObservableProperty] private decimal _total;
     [ObservableProperty] private string _mensagem = "";
+    [ObservableProperty] private int _filaWppPendentes;
 
-    public OrcamentosViewModel(GraficaIdService grafica, CalculadoraService calc, PdfService pdf, StockService stock)
-    { _grafica = grafica; _calc = calc; _pdf = pdf; _stock = stock; _ = LoadAsync(); }
+    public OrcamentosViewModel(GraficaIdService grafica, CalculadoraService calc, PdfService pdf, StockService stock, IWhatsAppService wpp)
+    { _grafica = grafica; _calc = calc; _pdf = pdf; _stock = stock; _wpp = wpp; _ = LoadAsync(); _ = ContarFilaWppAsync(); }
 
     [RelayCommand] public async Task LoadAsync()
     {
@@ -131,5 +133,115 @@ public partial class OrcamentosViewModel : BaseViewModel
         using var db = new KoloraDbContext(_grafica.DbPath);
         using var tx = await db.Database.BeginTransactionAsync();
         try { var e = await db.Orcamentos.FindAsync(o.Id); if (e == null) return; db.Orcamentos.Remove(e); db.OutboxEvents.Add(new OutboxEvent { Id = Guid.NewGuid(), Entidade = "Orcamento", EntidadeId = o.Id, TipoOperacao = TipoOperacaoOutbox.DELETE, PayloadJson = OutboxJson.Serialize(e), CriadoEm = DateTime.UtcNow, StatusSync = "Pendente" }); await db.SaveChangesAsync(); await tx.CommitAsync(); await LoadAsync(); } catch (Exception ex) { await tx.RollbackAsync(); Log.Error(ex, "Excluir orcamento"); }
+    }
+
+    private async Task ContarFilaWppAsync()
+    {
+        try
+        {
+            using var db = new KoloraDbContext(_grafica.DbPath);
+            FilaWppPendentes = await db.FilaEnvioWhatsApp.CountAsync(f => f.GraficaId == _grafica.GraficaId && f.Status == "Pendente");
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Envio em 1 clique, offline-first: SEMPRE enfileira local (transação atômica);
+    /// se a sessão WhatsApp estiver ligada, tenta enviar na hora, senão o worker drena depois.
+    /// </summary>
+    [RelayCommand]
+    public async Task EnviarWhatsAppAsync(Orcamento? o)
+    {
+        if (o == null) return;
+        try
+        {
+            using var db = new KoloraDbContext(_grafica.DbPath);
+            var cliente = await db.Clientes.FindAsync(o.ClienteId);
+            if (cliente == null || !TelefoneWhatsApp.TentarNormalizar(cliente.Telefone, out var digitos))
+            {
+                Mensagem = "Cliente sem telefone válido (ex: 923456789).";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(o.CaminhoPdf) || !File.Exists(o.CaminhoPdf))
+            {
+                Mensagem = "PDF não encontrado — gere o orçamento de novo.";
+                return;
+            }
+
+            var jid = TelefoneWhatsApp.ParaJid(digitos);
+            var grafica = await db.Graficas.FindAsync(_grafica.GraficaId);
+            var legenda = $"Olá {cliente.Nome}! Aqui está o seu orçamento de {Kz.Format(o.Total)}" +
+                          $" válido até {o.Validade:dd/MM/yyyy} — {grafica?.Nome ?? "KOLORA"}";
+
+            // Idempotente: reutiliza item pendente do mesmo orçamento
+            var item = await db.FilaEnvioWhatsApp.FirstOrDefaultAsync(f =>
+                f.OrcamentoId == o.Id && f.Status == "Pendente");
+            if (item == null)
+            {
+                item = new FilaEnvioWhatsApp
+                {
+                    Id = Guid.NewGuid(),
+                    GraficaId = _grafica.GraficaId,
+                    OrcamentoId = o.Id,
+                    TelefoneDestino = cliente.Telefone ?? "",
+                    JidDestino = jid,
+                    PdfPath = o.CaminhoPdf,
+                    Legenda = legenda,
+                    Status = "Pendente",
+                    CriadoEm = DateTime.UtcNow,
+                    AtualizadoEm = DateTime.UtcNow,
+                };
+                db.FilaEnvioWhatsApp.Add(item);
+                await db.SaveChangesAsync();
+            }
+            else
+            {
+                // Atualiza destino/legenda caso o cliente tenha mudado
+                item.JidDestino = jid;
+                item.Legenda = legenda;
+                item.PdfPath = o.CaminhoPdf;
+                item.AtualizadoEm = DateTime.UtcNow;
+                await db.SaveChangesAsync();
+            }
+            await ContarFilaWppAsync();
+
+            if (_wpp.Ligado)
+            {
+                try
+                {
+                    await _wpp.EnviarPdfAsync(jid, o.CaminhoPdf, legenda, Path.GetFileName(o.CaminhoPdf));
+                    item.Status = "Enviado";
+                    item.EnviadoEm = DateTime.UtcNow;
+                    item.UltimoErro = null;
+                    item.AtualizadoEm = DateTime.UtcNow;
+                    db.FilaEnvioWhatsApp.Update(item);
+                    await db.SaveChangesAsync();
+                    Mensagem = $"Enviado via WhatsApp para {cliente.Telefone} ✓";
+                    Log.Information("WhatsApp: orçamento {Id} enviado na hora", o.Id);
+                }
+                catch (Exception ex)
+                {
+                    item.Tentativas++;
+                    item.UltimoErro = $"@{DateTime.UtcNow:O} {ex.Message}";
+                    item.AtualizadoEm = DateTime.UtcNow;
+                    db.FilaEnvioWhatsApp.Update(item);
+                    await db.SaveChangesAsync();
+                    Mensagem = "Falhou agora — ficou na fila e tenta sozinho depois.";
+                    Log.Warning(ex, "WhatsApp: envio imediato falhou, enfileirado");
+                }
+            }
+            else
+            {
+                Mensagem = _wpp.Status == WhatsAppStatus.Desligado
+                    ? "WhatsApp desligado — ficou na fila. Ligue em Configurações para enviar."
+                    : "Sem ligação — ficou na fila e envia sozinho quando ligar.";
+            }
+            await ContarFilaWppAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "WhatsApp: erro ao enfileirar");
+            Mensagem = "Erro: " + ex.Message;
+        }
     }
 }

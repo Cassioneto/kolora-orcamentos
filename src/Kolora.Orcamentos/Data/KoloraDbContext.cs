@@ -15,6 +15,7 @@ public class KoloraDbContext : DbContext
     public DbSet<PedidoOrcamento> PedidosOrcamento => Set<PedidoOrcamento>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
     public DbSet<SyncState> SyncState => Set<SyncState>();
+    public DbSet<FilaEnvioWhatsApp> FilaEnvioWhatsApp => Set<FilaEnvioWhatsApp>();
 
     private readonly string? _dbPath;
 

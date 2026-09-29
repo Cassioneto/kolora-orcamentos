@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2B355B15-652
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kolora.Orcamentos", "src\Kolora.Orcamentos\Kolora.Orcamentos.csproj", "{DF21A026-A82A-450C-ACDE-1382F2AA9619}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BaileysCSharp-main", "BaileysCSharp-main", "{713C5886-033C-4140-BA65-7B3F50E99B73}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaileysCSharp", "BaileysCSharp-main\BaileysCSharp\BaileysCSharp.csproj", "{8E6B449C-6EFC-4672-B710-FC44DA014633}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,13 @@ Global
 		{DF21A026-A82A-450C-ACDE-1382F2AA9619}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF21A026-A82A-450C-ACDE-1382F2AA9619}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF21A026-A82A-450C-ACDE-1382F2AA9619}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E6B449C-6EFC-4672-B710-FC44DA014633}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E6B449C-6EFC-4672-B710-FC44DA014633}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E6B449C-6EFC-4672-B710-FC44DA014633}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E6B449C-6EFC-4672-B710-FC44DA014633}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DF21A026-A82A-450C-ACDE-1382F2AA9619} = {2B355B15-652B-4E0A-8C1A-2417F3BC3954}
+		{8E6B449C-6EFC-4672-B710-FC44DA014633} = {713C5886-033C-4140-BA65-7B3F50E99B73}
 	EndGlobalSection
 EndGlobal

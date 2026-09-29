@@ -14,9 +14,28 @@ namespace Kolora.Orcamentos;
 public partial class App : Application
 {
     private IHost? _host;
+    private Mutex? _instanciaUnica;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        // Trava single-instance: duas janelas brigariam por kolora.db (WAL) e
+        // whatsapp/session/store.db (LiteDB exclusivo) — erro "used by another process".
+        try
+        {
+            _instanciaUnica = new Mutex(true, "KoloraGestor-SingleInstance", out bool primeira);
+            if (!primeira)
+            {
+                MessageBox.Show("O KOLORA Gestor já está aberto. Use a janela existente.",
+                    "KOLORA", MessageBoxButton.OK, MessageBoxImage.Information);
+                Shutdown(0);
+                return;
+            }
+        }
+        catch (AbandonedMutexException)
+        {
+            // Instância anterior morreu sem libertar — o OS entrega o mutex, segue normal.
+        }
+
         var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Kolora");
         Directory.CreateDirectory(appData);
         Directory.CreateDirectory(Path.Combine(appData, "assets"));
@@ -27,6 +46,9 @@ public partial class App : Application
             .CreateLogger();
 
         // Handlers globais: erros de binding/comando/async deixam de ser silenciosos
+        System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Error;
+        System.Diagnostics.PresentationTraceSources.DataBindingSource.Listeners.Add(
+            new BindingErrorTraceListener());
         DispatcherUnhandledException += (_, ex) =>
         {
             Log.Error(ex.Exception, "Excecao nao tratada na UI");
@@ -59,6 +81,8 @@ public partial class App : Application
                     services.AddSingleton<IConfigurationService>(sp => sp.GetRequiredService<ConfigurationService>());
                     services.AddSingleton<INetworkMonitorService, NetworkMonitorService>();
                     services.AddSingleton<ISupabaseService, SupabaseService>();
+                    services.AddSingleton<IWhatsAppService, WhatsAppService>();
+                    services.AddHostedService<WhatsAppBackgroundService>();
                     services.AddSingleton<ISyncService, SyncBackgroundService>();
                     services.AddHostedService(sp => (SyncBackgroundService)sp.GetRequiredService<ISyncService>());
                     services.AddSingleton<CalculadoraService>();
@@ -126,5 +150,16 @@ public partial class App : Application
         if (_host != null) await _host.StopAsync();
         Log.CloseAndFlush();
         base.OnExit(e);
+    }
+
+    /// <summary>Erros de binding XAML (ex.: comando não encontrado) vão para o Serilog em vez de sumirem.</summary>
+    private sealed class BindingErrorTraceListener : System.Diagnostics.TraceListener
+    {
+        public override void Write(string? message) { }
+        public override void WriteLine(string? message)
+        {
+            if (!string.IsNullOrWhiteSpace(message))
+                Log.Warning("WPF binding: {Msg}", message.Trim());
+        }
     }
 }

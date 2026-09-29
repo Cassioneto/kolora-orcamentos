@@ -57,17 +57,32 @@
                 </DockPanel>
             </StackPanel>
         </Border>
-        <TextBlock Grid.Row="3" Text="Histórico" FontWeight="Bold" Foreground="#1A1A2E" Margin="0,4,0,6"/>
+        <DockPanel Grid.Row="3" Margin="0,4,0,6">
+            <TextBlock Text="Histórico" FontWeight="Bold" Foreground="#1A1A2E" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding FilaWppPendentes, StringFormat='📲 {0} na fila do WhatsApp'}" Foreground="#2E7D32" FontSize="11" Margin="12,0,0,0" VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding FilaWppPendentes}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </DockPanel>
         <DataGrid Grid.Row="4" ItemsSource="{Binding Orcamentos}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderBrush="#E0E0E0" BorderThickness="1" RowHeaderWidth="0">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Data" Binding="{Binding Data, StringFormat=dd/MM/yyyy HH:mm}" Width="130"/>
                 <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat='Kz {0:N2}'}" Width="120"/>
                 <DataGridTextColumn Header="Validade" Binding="{Binding Validade, StringFormat=dd/MM/yyyy}" Width="110"/>
                 <DataGridTextColumn Header="PDF" Binding="{Binding CaminhoPdf, Converter={StaticResource FileNameConv}}" Width="*"/>
-                <DataGridTemplateColumn Header="" Width="230">
+                <DataGridTemplateColumn Header="" Width="300">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
+                                <Button Content="WhatsApp" Margin="2" Padding="8,2" Background="#25D366" Foreground="White" BorderThickness="0" FontWeight="Bold" Command="{Binding DataContext.EnviarWhatsAppCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                                 <Button Content="Abrir pasta" Margin="2" Padding="8,2" Command="{Binding DataContext.AbrirPastaCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                                 <Button Content="Excluir" Margin="2" Padding="8,2" Background="#E53935" Foreground="White" BorderThickness="0" Command="{Binding DataContext.ExcluirCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
                             </StackPanel>

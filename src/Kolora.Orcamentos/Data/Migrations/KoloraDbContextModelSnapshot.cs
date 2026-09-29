@@ -92,6 +92,68 @@ namespace Kolora.Orcamentos.Data.Migrations
                     b.ToTable("ConfiguracoesGrafica");
                 });
 
+            modelBuilder.Entity("Kolora.Orcamentos.Models.Entities.FilaEnvioWhatsApp", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EnviadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("GraficaId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("JidDestino")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Legenda")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrcamentoId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PdfPath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Pendente");
+
+                    b.Property<string>("TelefoneDestino")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tentativas")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UltimoErro")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GraficaId", "Status");
+
+                    b.ToTable("FilaEnvioWhatsApp");
+                });
+
             modelBuilder.Entity("Kolora.Orcamentos.Models.Entities.Grafica", b =>
                 {
                     b.Property<Guid>("Id")
