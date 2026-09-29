@@ -10,6 +10,7 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>KoloraGestor</AssemblyName>
+    <ApplicationIcon>Resources\kolora.ico</ApplicationIcon>
     <Version>1.0.0</Version>
   </PropertyGroup>
 
@@ -39,9 +40,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <!-- appsettings.json vai EMBUTIDO no exe (1 ficheiro único).
+         Valores vazios: URL/key configuram-se na tela Configurações (key vai ao cofre DPAPI).
+         Um appsettings.json EXTERNO ao lado do exe (se existir) sobrepõe — p/ override manual. -->
+    <None Remove="appsettings.json" />
+    <EmbeddedResource Include="appsettings.json" />
     <Resource Include="Resources\kolora_logo.png" />
   </ItemGroup>
+
+  <!-- QuestPDF traz LatoFont/OFL.txt (só licença) ao publish — fora, queremos 1 ficheiro -->
+  <Target Name="RemoverLatoDoPublish" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)LatoFont" />
+  </Target>
 </Project>

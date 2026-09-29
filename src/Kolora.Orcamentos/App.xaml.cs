@@ -68,7 +68,11 @@ public partial class App : Application
                 
                 .ConfigureAppConfiguration(cfg =>
                 {
-                    cfg.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    // 1) Defaults EMBUTIDOS no exe (1 ficheiro único) — Supabase vem vazio
+                    var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                    var embebido = asm.GetManifestResourceStream("Kolora.Orcamentos.appsettings.json");
+                    if (embebido != null) cfg.AddJsonStream(embebido);
+                    // 2) Override EXTERNO opcional ao lado do exe (criado ao guardar URL em Configurações)
                     var appSettingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
                     if (File.Exists(appSettingsPath)) cfg.AddJsonFile(appSettingsPath, optional: true, reloadOnChange: true);
                 })

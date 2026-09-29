@@ -24,6 +24,7 @@ dotnet publish src/Kolora.Orcamentos/Kolora.Orcamentos.csproj -c Release -r win-
 
 # .exe único autossuficiente — 227 MB, funciona em qualquer Windows sem instalar nada
 dotnet publish src/Kolora.Orcamentos/Kolora.Orcamentos.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+dotnet publish src/Kolora.Orcamentos/Kolora.Orcamentos.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true /p:DebugType=none /p:DebugSymbols=false /p:PublishDir="bin\Release\sc1\"
 Saída do publish: src\Kolora.Orcamentos\bin\Release\net8.0-windows\win-x64\publish\KoloraGestor.exe
 
 3. Editor (opcional, gratuito)
